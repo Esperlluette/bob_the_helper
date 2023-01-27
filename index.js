@@ -1,7 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawn, exec } = require('node:child_process');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
+const { execute } = require('./commands/wake');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -17,9 +19,22 @@ for (const file of commandFiles) {
 
 client.once('ready', () => {
 	console.log('Ready!');
+	
+	exec('node deploy-commands.js', (error, stdout, stderr) => {
+		if (error) {
+		  console.error(`exec error: ${error}`);
+		  return;
+		}
+		console.log(`stdout: ${stdout}`);
+		console.error(`stderr: ${stderr}`);
+	  });
+
+
+	client.user.setPresence({ activities: [{ name: 'manager des serveurs' }], status: 'online' });
 });
 
 client.on('interactionCreate', async interaction => {
+
 	if (!interaction.isChatInputCommand()) return;
 
 	const command = client.commands.get(interaction.commandName);
